@@ -20,6 +20,8 @@ class OrdersController < ApplicationController
         product_list.quantity = cart_item.quantity
         product_list.save
       end
+      current_cart.clean!
+      OrderMailer.notify_order_placed(@order).deliver!
     else
       render 'carts/checkout'
     end
@@ -28,14 +30,14 @@ class OrdersController < ApplicationController
   def pay_with_creditcard
     @order = Order.find_by_token(params[:id])
     @order.set_payment_with!("creditcard")
-    @order.pay!
+    @order.make_payment!
     redirect_to order_path(@order.token), notice: "使用信用卡成功完成付款"
   end
 
   def pay_with_ewallet
     @order = Order.find_by_token(params[:id])
     @order.set_payment_with!("ewallet")
-    @order.pay!
+    @order.make_payment!
     redirect_to order_path(@order.token), notice: "使用電子錢包成功完成付款"
   end
 
